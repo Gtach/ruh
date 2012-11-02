@@ -9,9 +9,9 @@
 
 using System;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using Domain;
+using ProtoBuf;
 using ZMQ;
 
 namespace zmgServer
@@ -24,7 +24,6 @@ namespace zmgServer
             {
                 using (var publisher = context.Socket(SocketType.PUB))
                 {
-                    var formatter = new BinaryFormatter();
                     publisher.Bind("tcp://*:5556");
 
                     var randomizer = new Random(DateTime.Now.Millisecond);
@@ -35,7 +34,8 @@ namespace zmgServer
                             //  Get values that will fool the boss
                             var weather = new Weather{ZipCode = randomizer.Next(0, 100000), Temperature = randomizer.Next(-80, 135), RelativeHumidity = randomizer.Next(10, 60) };
 
-                            formatter.Serialize(stream, weather);
+                            stream.SetLength(0);
+                            Serializer.Serialize(stream, weather);
                             stream.Seek(0, SeekOrigin.Begin);
 
                             //  Send message to 0..N subscribers via a pub socket

@@ -9,9 +9,9 @@
 
 using System;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using Domain;
+using ProtoBuf;
 using ZMQ;
 
 namespace zmgClient
@@ -37,14 +37,13 @@ namespace zmgClient
 
                     const int updatesToCollect = 10;
                     var totalTemperature = 0;
-                    var formatter = new BinaryFormatter();
 
                     for (var updateNumber = 0; updateNumber < updatesToCollect; updateNumber++)
                     {
                         var zipcode = subscriber.Recv(Encoding.Unicode);
 
                         var stream = new MemoryStream(subscriber.Recv());
-                        var weather = formatter.Deserialize(stream) as Weather;
+                        var weather = Serializer.Deserialize<Weather>(stream);
 
                         totalTemperature += weather.Temperature;
                     }
