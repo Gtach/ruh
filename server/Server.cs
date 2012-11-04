@@ -64,25 +64,13 @@ namespace zmgServer
 
         public static void Send(Socket publisher, RuntimeTypeModel typeModel, MemoryStream stream, DomainBase instance)
         {
-            var status = publisher.SendMore(instance.GetType().GUID.ToByteArray());
+            var status = publisher.SendMore(DomainTypes.Tag2Bytes(instance.GetType()));
             if (status != SendStatus.Sent) throw new InvalidOperationException("Key not sent!");
 
             stream.SetLength(0);
-            typeModel.SerializeWithLengthPrefix(stream, instance, null, PrefixStyle.Base128, DomainTypes.TypeToTag[instance.GetType()]);
+            typeModel.Serialize(stream, instance);
             status = publisher.Send(stream.ToArray());
             if (status != SendStatus.Sent) throw new InvalidOperationException("Instance not sent!");
         }
-/*
-        public static void Send(Socket publisher, MemoryStream stream, DomainBase instance)
-        {
-            var status = publisher.SendMore(instance.GetType().GUID.ToByteArray());
-            if (status != SendStatus.Sent) throw new InvalidOperationException("Key not sent!");
-
-            stream.SetLength(0);
-            Serializer.Serialize(stream, instance);
-            status = publisher.Send(stream.ToArray());
-            if (status != SendStatus.Sent) throw new InvalidOperationException("Instance not sent!");
-        }
- */ 
     }
 }

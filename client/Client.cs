@@ -28,21 +28,21 @@ namespace zmgClient
 
             var typeModel = RuntimeTypeModel.Default;
 
-            
             using (var context = new Context(1))
             {
                 using (var subscriber = context.Socket(SocketType.SUB))
                 {
-                    subscriber.Subscribe(typeof(Weather).GUID.ToByteArray());
-                    //subscriber.Subscribe(typeof(City).GUID.ToByteArray());
+                    subscriber.Subscribe(DomainTypes.Tag2Bytes(typeof(Weather)));
+                    //subscriber.Subscribe(DomainTypes.Tag2Bytes(typeof(City)));
                     subscriber.Connect("tcp://localhost:5556");
 
                     while (true)
                     {
-                        var guid = new Guid(subscriber.Recv());
-
+                        var type = DomainTypes.Bytes2Type(subscriber.Recv());
                         var stream = new MemoryStream(subscriber.Recv());
-                        var obj = typeModel.DeserializeWithLengthPrefix(stream, null, null, PrefixStyle.Base128, 0, key => DomainTypes.TagToType[key]);
+                        //var obj = typeModel.DeserializeWithLengthPrefix(stream, null, null, PrefixStyle.Base128, 0, key => DomainTypes.TagToType[key]);
+                        var obj = typeModel.Deserialize(stream, null, type);
+                        
 
                         Console.WriteLine(string.Format("Received: {0}", obj));
 
