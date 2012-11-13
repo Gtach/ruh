@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Reflection;
 
-namespace UnitOfWork
+namespace ChangeTrack
 {
-    internal enum ChangeablePropertyInfoType
+    public enum ChangeablePropertyInfoType
     {
         Field,
         Reference,
         Association
     }
 
-    internal class ChangeablePropertyInfo
+    public class ChangeablePropertyInfo
     {
         public readonly PropertyInfo PropertyInfo;
         public readonly ChangeablePropertyInfoType InfoType;
@@ -18,7 +18,7 @@ namespace UnitOfWork
         public ChangeablePropertyInfo(PropertyInfo propertyInfo)
         {
             PropertyInfo = propertyInfo;
-            if (typeof(IChangeable).IsAssignableFrom(PropertyInfo.PropertyType))
+            if (typeof(IChangeTrackable).IsAssignableFrom(PropertyInfo.PropertyType))
                 InfoType = ChangeablePropertyInfoType.Reference;
             else if (typeof(IChangeableList).IsAssignableFrom(PropertyInfo.PropertyType))
                 InfoType = ChangeablePropertyInfoType.Association;
@@ -26,28 +26,28 @@ namespace UnitOfWork
                 InfoType = ChangeablePropertyInfoType.Field;
         }
 
-        public object GetValue(IChangeable changeable)
+        public object GetValue(IChangeTrackable changeTrackable)
         {
-            return PropertyInfo.GetValue(changeable, null);
+            return PropertyInfo.GetValue(changeTrackable, null);
         }
 
-        public void SetValue(IChangeable changeable, object obj)
+        public void SetValue(IChangeTrackable changeTrackable, object obj)
         {
-            PropertyInfo.SetValue(changeable, obj, null);
+            PropertyInfo.SetValue(changeTrackable, obj, null);
         }
 
-        public IChangeable GetReferenceValue(IChangeable changeable)
+        public IChangeTrackable GetReferenceValue(IChangeTrackable changeTrackable)
         {
             if (InfoType != ChangeablePropertyInfoType.Reference)
                 throw new InvalidOperationException("This ChangeablePropertyInfo is not a Reference!");
-            return PropertyInfo.GetValue(changeable, null) as IChangeable;
+            return PropertyInfo.GetValue(changeTrackable, null) as IChangeTrackable;
         }
 
-        public IChangeableList GetAssociationValue(IChangeable changeable)
+        public IChangeableList GetAssociationValue(IChangeTrackable changeTrackable)
         {
             if (InfoType != ChangeablePropertyInfoType.Association)
                 throw new InvalidOperationException("This ChangeablePropertyInfo is not a List!");
-            return PropertyInfo.GetValue(changeable, null) as IChangeableList;
+            return PropertyInfo.GetValue(changeTrackable, null) as IChangeableList;
         }
     }
 }

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
 using System.Diagnostics;
+using ChangeTrack;
 using Common.interfaces;
 using ProtoBuf;
-using UnitOfWork;
 
 namespace Domain
 {
@@ -15,7 +15,7 @@ namespace Domain
     /// </summary>
     [ProtoContract]
     [DebuggerDisplay("{ToInfo()}")]
-    public abstract class DomainBase : Changeable, IInfo
+    public abstract class DomainBase : ChangeTrackBase, IInfo
     {
         private Guid _id = Guid.NewGuid();
 
@@ -24,7 +24,7 @@ namespace Domain
         /// </summary>
         /// <value>The id.</value>
         [ProtoMember(1)]
-        public Guid Id
+        public override Guid Id
         {
             get { return _id; }
             set { SetProperty(() => Id, value, ref _id); }
@@ -78,7 +78,7 @@ namespace Domain
         /// <returns>
         /// true if the current object is equal to the <paramref name="other"/> parameter; otherwise, false.
         /// </returns>
-        public override bool Equals(Changeable other)
+        public override bool Equals(ChangeTrackBase other)
         {
             return (other is DomainBase) && Id.Equals(((DomainBase)other).Id);
         }

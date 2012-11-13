@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Collections.Specialized;
 
-namespace Common.interfaces
+namespace ChangeTrack
 {
     /// <summary>
     /// Interface to a observable enumerable

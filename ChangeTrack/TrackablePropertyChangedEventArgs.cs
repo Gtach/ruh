@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace UnitOfWork
+namespace ChangeTrack
 {
     /// <summary>
     /// Event arguments for use in IChangeabel handling. Inheirs from <see cref="PropertyChangedEventArgs"/> to 

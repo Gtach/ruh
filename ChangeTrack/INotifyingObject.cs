@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Common.interfaces
+namespace ChangeTrack
 {
     /// <summary>
     /// 

@@ -4,36 +4,38 @@ using System.ComponentModel;
 using System.Collections.Specialized;
 using System.Linq.Expressions;
 
-namespace UnitOfWork
+namespace ChangeTrack
 {
     /// <summary>
-    /// Implementation of the <see cref="IChangeable"/> interface.
+    /// Implementation of the <see cref="IChangeTrackable"/> interface.
     /// Implements <see cref="INotifyPropertyChanged"/> but adds event bubbling to notify changes in 
     /// instances it references to.
     /// </summary>
     [Serializable]
-    public abstract class Changeable : IChangeable, IEquatable<Changeable>
+    public abstract class ChangeTrackBase : IChangeTrackable, IEquatable<ChangeTrackBase>
     {
         private readonly PropertyChangedEventHandler _referenceChangedEventHandler;
         private readonly IDictionary<string, INotifyPropertyChanged> _references = new Dictionary<string, INotifyPropertyChanged>();
 
+        public abstract Guid Id { get; set; }
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="Changeable"/> class.
+        /// Initializes a new instance of the <see cref="ChangeTrackBase"/> class.
         /// </summary>
-        protected Changeable()
+        protected ChangeTrackBase()
         {
             _referenceChangedEventHandler = ReferenceChanged;
         }
 
-        ~Changeable()
+        ~ChangeTrackBase()
         {
-            this.Detach();
+            //TODO this.Detach();
         }
 
         private void ReferenceChanged(object sender, PropertyChangedEventArgs e)
         {
             if ((!(sender is INotifyCollectionChanged) || (e.PropertyName == "Count") || (e.PropertyName == "Item")))
-                OnPropertyChanged(FindReferencePropertyName((INotifyPropertyChanged)sender), sender, sender);
+                FirePropertyChanged(FindReferencePropertyName((INotifyPropertyChanged)sender), sender, sender);
         }
 
         private string FindReferencePropertyName(INotifyPropertyChanged reference)
@@ -57,13 +59,13 @@ namespace UnitOfWork
             _references.Remove(propertyName);
         }
 
-        private void OnPropertyChanging(string propertyName)
+        private void FirePropertyChanging(string propertyName)
         {
             if (PropertyChanging != null)
                 PropertyChanging(this, new PropertyChangingEventArgs(propertyName));
         }
 
-        private void OnPropertyChanged(string propertyName, object oldValue, object newValue)
+        private void FirePropertyChanged(string propertyName, object oldValue, object newValue)
         {
             if (PropertyChanged != null)
                 PropertyChanged(this, new TrackablePropertyChangedEventArgs(propertyName, oldValue, newValue));
@@ -84,7 +86,7 @@ namespace UnitOfWork
 // ReSharper disable CompareNonConstrainedGenericWithNull
             if ((property == null) && (newValue == null)) return;
 // ReSharper restore CompareNonConstrainedGenericWithNull
-            if ((property is Changeable) && (property as Changeable).Equals(newValue as Changeable)) return;
+            if ((property is ChangeTrackBase) && (property as ChangeTrackBase).Equals(newValue as ChangeTrackBase)) return;
 // ReSharper disable CompareNonConstrainedGenericWithNull
             if ((property != null) && property.Equals(newValue)) return;
 // ReSharper restore CompareNonConstrainedGenericWithNull
@@ -98,14 +100,14 @@ namespace UnitOfWork
             var notifyPropertyChanged = property as INotifyPropertyChanged;
             if (notifyPropertyChanged != null) RemoveReference(notifyPropertyChanged, propertyName);
 
-            OnPropertyChanging(propertyName);
+            FirePropertyChanging(propertyName);
 
             property = newValue;
 
             var propertyChanged = property as INotifyPropertyChanged;
             if (propertyChanged != null) AddReference(propertyChanged, propertyName);
 
-            OnPropertyChanged(propertyName, oldValue, newValue);
+            FirePropertyChanged(propertyName, oldValue, newValue);
         }
 
         #region Implementation of INotifyPropertyChanging
@@ -122,7 +124,7 @@ namespace UnitOfWork
 
         #endregion
 
-        #region IEquatable<Changeable> Members
+        #region IEquatable<ChangeTrackBase> Members
 
         /// <summary>
         /// Indicates whether the current object is equal to another object of the same type.
@@ -131,7 +133,7 @@ namespace UnitOfWork
         /// <returns>
         /// true if the current object is equal to the <paramref name="other"/> parameter; otherwise, false.
         /// </returns>
-        public virtual bool Equals(Changeable other)
+        public virtual bool Equals(ChangeTrackBase other)
         {
             return ReferenceEquals(this, other);
         }

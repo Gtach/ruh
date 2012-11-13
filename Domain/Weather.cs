@@ -30,5 +30,9 @@ namespace Domain
             set { SetProperty(() => RelativeHumidity, value, ref _relativeHumidity); }
         }
 
+        public override string ToInfo(bool shortInfo)
+        {
+            return string.Format("{0}, Zip: {1}, Temperature: {2}, RelativeHumidity: {3}", base.ToInfo(shortInfo), ZipCode, Temperature, RelativeHumidity);
+        }
     }
 }

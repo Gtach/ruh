@@ -64,6 +64,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ChangeTrack\ChangeTrack.csproj">
+      <Project>{22CF958F-F66D-4484-BCEA-5F64B42957C6}</Project>
+      <Name>ChangeTrack</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{36E01FC1-4750-4343-B989-BF763FFA6772}</Project>
       <Name>Common</Name>

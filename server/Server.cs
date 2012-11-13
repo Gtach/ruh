@@ -1,20 +1,13 @@
-﻿//
-//  Weather update server
-//  Binds PUB socket to tcp://*:5556
-//  Publishes random weather updates
-//
-
-//  Author:     Michael Compton, Tomas Roos
-//  Email:      michael.compton@littleedge.co.uk, ptomasroos@gmail.com
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Common.interfaces;
 using Domain;
-using ProtoBuf;
 using ProtoBuf.Meta;
+using Repository;
 using ZMQ;
+using UnitOfWork;
 
 namespace zmgServer
 {
@@ -23,8 +16,34 @@ namespace zmgServer
         public static void Main(string[] args)
         {
             IDictionary<int, City> cities = new Dictionary<int, City>();
-            
+
+            IUnitOfWork unitOfWork = new ChangeTrackUoW(new ZmqRepository(@"C:\temp\data"));
+
+            var randomizer = new Random(DateTime.Now.Millisecond);
+
+            var zipCode = randomizer.Next(1, 100000);
+            var weather = new Weather { ZipCode = zipCode, Temperature = randomizer.Next(-80, 135), RelativeHumidity = randomizer.Next(10, 60) };
+
+            unitOfWork.StartTransaction(weather);
+
+            try
+            {
+                unitOfWork.Commit();
+            }
+            catch (System.Exception exception)
+            {
+                unitOfWork.Rollback();
+                Console.WriteLine("Error: " + exception.Message);
+            }
+        }
+
+/*
+        public static void Main(string[] args)
+        {
+            IDictionary<int, City> cities = new Dictionary<int, City>();
+
             var typeModel = RuntimeTypeModel.Default;
+            IUnitOfWork unitOfWork = new ChangeTrackUoW(new ZmqRepository(@"C:\temp\data"));
 
             using (var context = new Context(1))
             {
@@ -33,25 +52,29 @@ namespace zmgServer
                     publisher.Bind("tcp://*:5556");
 
                     var randomizer = new Random(DateTime.Now.Millisecond);
-                    using (var stream = new MemoryStream())
+                    while (true)
                     {
-                        while (true)
+                        var zipCode = randomizer.Next(1, 100000);
+                        var weather = new Weather { ZipCode = zipCode, Temperature = randomizer.Next(-80, 135), RelativeHumidity = randomizer.Next(10, 60) };
+
+                        unitOfWork.StartTransaction(weather);
+
+                        try
                         {
-                            var zipCode = randomizer.Next(1, 100000);
-                            var city = GetCity(cities, zipCode);
-
-                            var weather = new Weather { ZipCode = zipCode, Temperature = randomizer.Next(-80, 135), RelativeHumidity = randomizer.Next(10, 60) };
-
-                            Send(publisher, typeModel, stream, city);
-                            Send(publisher, typeModel, stream, weather);
-
-                            Thread.Sleep(100);
+                            unitOfWork.Commit();
                         }
+                        catch (System.Exception exception)
+                        {
+                            unitOfWork.Rollback();
+                            Console.WriteLine("Error: " + exception.Message);
+                        }
+
+                        Thread.Sleep(100);
                     }
                 }
             }
         }
-
+*/
         private static City GetCity(IDictionary<int, City> cities, int zipCode)
         {
             City city;

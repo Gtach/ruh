@@ -1,7 +1,7 @@
-﻿namespace UnitOfWork
+﻿namespace ChangeTrack
 {
     /// <summary>
-    /// State a tracked IChangeable instance is in
+    /// State a tracked IChangeTrackable instance is in
     /// </summary>
     public enum ChangeState
     {

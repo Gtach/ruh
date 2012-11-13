@@ -2,13 +2,13 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-namespace UnitOfWork
+namespace ChangeTrack
 {
     /// <summary>
     /// 
     /// </summary>
     [Serializable]
-    public class ChangeableList<T> : ObservableCollection<T>, IChangeableList<T> where T : IChangeable
+    public class ChangeableList<T> : ObservableCollection<T>, IChangeableList<T> where T : IChangeTrackable
     {
         /// <summary>Name of the Count property</summary>
         public const string CountProperty = "Count";
@@ -18,7 +18,7 @@ namespace UnitOfWork
 
         ~ChangeableList()
         {
-            this.Detach();
+            //TODO this.Detach();
         }
 
         private void ItemChanged(object sender, PropertyChangedEventArgs e)

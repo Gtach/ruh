@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace UnitOfWork
+namespace ChangeTrack
 {
-    internal struct Change
+    public struct Change
     {
         public object OldValue;
         public object NewValue;
@@ -13,7 +13,7 @@ namespace UnitOfWork
         }
     }
 
-    internal class Changes
+    public class Changes
     {
         public readonly IDictionary<string, Change> AllChanges = new Dictionary<string, Change>();
 

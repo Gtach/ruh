@@ -65,6 +65,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ChangeTrack\ChangeTrack.csproj">
+      <Project>{22CF958F-F66D-4484-BCEA-5F64B42957C6}</Project>
+      <Name>ChangeTrack</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.csproj">
       <Project>{36E01FC1-4750-4343-B989-BF763FFA6772}</Project>
       <Name>Common</Name>
@@ -72,6 +76,10 @@
     <ProjectReference Include="..\Domain\Domain.csproj">
       <Project>{5EDA33D0-2800-4936-B21A-333217BA9E3F}</Project>
       <Name>Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Repository\Repository.csproj">
+      <Project>{C7642B3F-C412-403E-8221-68913ABEFD66}</Project>
+      <Name>Repository</Name>
     </ProjectReference>
     <ProjectReference Include="..\UnitOfWork\UnitOfWork.csproj">
       <Project>{86F8B3B6-86FF-459C-8B87-9A9D84DEA27E}</Project>
