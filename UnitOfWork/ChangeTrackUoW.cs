@@ -5,14 +5,13 @@ using System.Linq;
 using System.Reflection;
 using ChangeTrack;
 using Common.interfaces;
-using Repository;
 
 namespace UnitOfWork
 {
     public class ChangeTrackUoW : IUnitOfWork
     {
+        private readonly IPropertyManager _propertyManager;
         private readonly IRepository _repository;
-        private readonly IDictionary<Type, IDictionary<string, ChangeablePropertyInfo>> _propertyInfos = new Dictionary<Type, IDictionary<string, ChangeablePropertyInfo>>();
         private readonly ICollection<int> _changeables = new HashSet<int>();
         private readonly ICollection<int> _newChangeables = new HashSet<int>();
         private readonly ICollection<int> _deletedChangeables = new HashSet<int>();
@@ -20,10 +19,12 @@ namespace UnitOfWork
 
         private IChangeTrackable _rootTrackable;
 
-        public ChangeTrackUoW(IRepository repository)
+        public ChangeTrackUoW(IPropertyManager propertyManager, IRepository repository)
         {
+            if (propertyManager == null) throw new ArgumentNullException("propertyManager");
             if (repository == null) throw new ArgumentNullException("repository");
 
+            _propertyManager = propertyManager;
             _repository = repository;
         }
 
@@ -64,9 +65,8 @@ namespace UnitOfWork
         private void InternalAttach(IChangeTrackable changeTrackable)
         {
             if ((changeTrackable == null) || IsAttached(changeTrackable)) return;
-            CheckPropertyCache(changeTrackable);
 
-            foreach (var changeablePropertyInfo in _propertyInfos[changeTrackable.GetType()].Values)
+            foreach (var changeablePropertyInfo in _propertyManager.GetInfos(changeTrackable))
                 AttachChangeableValue(changeablePropertyInfo, changeTrackable);
 
             changeTrackable.PropertyChanged += ChangeablePropertyChanged;
@@ -79,8 +79,7 @@ namespace UnitOfWork
         private void CheckDetached(IChangeTrackable changeTrackable)
         {
             if (changeTrackable == null) throw new ArgumentNullException("changeTrackable");
-            if (_changeables.Contains(changeTrackable.GetHashCode()))
-                throw new ArgumentException("Instance already attached!");
+            if (_changeables.Contains(changeTrackable.GetHashCode())) throw new ArgumentException("Instance already attached!");
         }
 
         private bool IsAttached(IChangeTrackable changeTrackable)
@@ -88,24 +87,11 @@ namespace UnitOfWork
             return _changeables.Contains(changeTrackable.GetHashCode());
         }
 
-        private void CheckPropertyCache(IChangeTrackable changeTrackable)
+        private void AttachChangeableValue(IPropertyManagerInfo propertyManagerInfo, IChangeTrackable changeTrackable)
         {
-            var type = changeTrackable.GetType();
-
-            if (_propertyInfos.ContainsKey(type)) return;
-
-            IDictionary<string, ChangeablePropertyInfo> dictionary = new Dictionary<string, ChangeablePropertyInfo>();
-            foreach (var propertyInfo in type.GetProperties())
-                if (!HasNotTrackableAttribute(propertyInfo))
-                    dictionary.Add(propertyInfo.Name, new ChangeablePropertyInfo(propertyInfo));
-            _propertyInfos.Add(type, dictionary);
-        }
-
-        private void AttachChangeableValue(ChangeablePropertyInfo changeablePropertyInfo, IChangeTrackable changeTrackable)
-        {
-            switch (changeablePropertyInfo.InfoType)
+            switch (propertyManagerInfo.InfoType)
             {
-                case ChangeablePropertyInfoType.Reference: InternalAttach(changeablePropertyInfo.GetReferenceValue(changeTrackable)); break;
+                case PropertyManagerInfoType.Reference: InternalAttach(propertyManagerInfo.GetReferenceValue<IChangeTrackable>(changeTrackable)); break;
                 //TODO case ChangeablePropertyInfoType.Association: ChangeableListUoW.InternalAttach(changeablePropertyInfo.GetAssociationValue(changeTrackable)); break;
             }
         }
@@ -117,12 +103,12 @@ namespace UnitOfWork
 
         private void ChangeablePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            var changeable = (IChangeTrackable)sender;
             var args = e as TrackablePropertyChangedEventArgs;
-            var propertyInfo = _propertyInfos[changeable.GetType()];
+            var propertyInfo = _propertyManager.GetInfo(sender, e.PropertyName);
 
-            if ((args == null) || !propertyInfo.ContainsKey(e.PropertyName)) return;
+            if ((args == null) || (propertyInfo == null)) return;
 
+            var changeable = (IChangeTrackable)sender;
             if (!IsNew(changeable) && !IsDeleted(changeable))
             {
                 var hashCode = changeable.GetHashCode();
@@ -133,7 +119,7 @@ namespace UnitOfWork
                 changes.Add(args.PropertyName, new Change { OldValue = args.OldValue, NewValue = args.NewValue });
             }
 
-            AttachChangeableValue(propertyInfo[e.PropertyName], changeable);
+            AttachChangeableValue(propertyInfo, changeable);
         }
 
         private bool IsNew(IChangeTrackable changeTrackable)
@@ -164,8 +150,9 @@ namespace UnitOfWork
         {
             if (ChangeableState(changeTrackable) != ChangeState.Changed) return;
 
+            var type = changeTrackable.GetType();
             foreach (var keyValuePair in _changedChangeables[changeTrackable.GetHashCode()].AllChanges)
-                _propertyInfos[changeTrackable.GetType()][keyValuePair.Key].SetValue(changeTrackable, RollbackValidObject(keyValuePair.Value.OldValue));
+                _propertyManager.GetInfo(type, keyValuePair.Key).SetValue(changeTrackable, RollbackValidObject(keyValuePair.Value.OldValue));
 
             InternalAcceptChanges(changeTrackable);
         }
@@ -182,8 +169,9 @@ namespace UnitOfWork
         {
             if (changeTrackable == null) return;
 
-            foreach (var changeablePropertyInfo in _propertyInfos[changeTrackable.GetType()].Values)
-                AcceptChangeableValue(changeablePropertyInfo, changeTrackable);
+            var type = changeTrackable.GetType();
+            foreach (var propertyManagerInfo in _propertyManager.GetInfos(type))
+                AcceptChangeableValue(propertyManagerInfo, changeTrackable);
 
             var hashCode = changeTrackable.GetHashCode();
             if (IsNew(changeTrackable))
@@ -198,11 +186,11 @@ namespace UnitOfWork
             }
         }
 
-        private void AcceptChangeableValue(ChangeablePropertyInfo changeablePropertyInfo, IChangeTrackable changeTrackable)
+        private void AcceptChangeableValue(IPropertyManagerInfo propertyManagerInfo, IChangeTrackable changeTrackable)
         {
-            switch (changeablePropertyInfo.InfoType)
+            switch (propertyManagerInfo.InfoType)
             {
-                case ChangeablePropertyInfoType.Reference: InternalAcceptChanges(changeablePropertyInfo.GetReferenceValue(changeTrackable)); break;
+                case PropertyManagerInfoType.Reference: InternalAcceptChanges(propertyManagerInfo.GetReferenceValue<IChangeTrackable>(changeTrackable)); break;
                 //TODOcase ChangeablePropertyInfoType.Association: ChangeableListUoW.InternalAcceptChanges(changeablePropertyInfo.GetAssociationValue(changeTrackable)); break;
             }
         }

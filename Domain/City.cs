@@ -8,6 +8,7 @@ namespace Domain
         private int _zipCode;
         private string _name;
         private CitySize _citySize;
+        private Weather _weather;
 
         [ProtoMember(1)]
         public int ZipCode
@@ -28,6 +29,12 @@ namespace Domain
         {
             get { return _citySize; }
             set { SetProperty(() => CitySize, value, ref _citySize); }
+        }
+
+        public Weather Weather
+        {
+            get { return _weather; }
+            set { SetProperty(() => Weather, value, ref _weather); }
         }
 
         public override string ToInfo(bool shortInfo)

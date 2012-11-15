@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
+using Common.classes;
 using Common.interfaces;
 using Domain;
 using ProtoBuf.Meta;
@@ -17,14 +17,17 @@ namespace zmgServer
         {
             IDictionary<int, City> cities = new Dictionary<int, City>();
 
-            IUnitOfWork unitOfWork = new ChangeTrackUoW(new ZmqRepository(@"C:\temp\data"));
+            var domainMapper = new DomainMapper();
+            var propertyManager = new PropertyManager();
+            var repository = new ZmqRepository(domainMapper, propertyManager, @"C:\temp\data");
+            IUnitOfWork unitOfWork = new ChangeTrackUoW(propertyManager, repository);
 
             var randomizer = new Random(DateTime.Now.Millisecond);
 
-            var zipCode = randomizer.Next(1, 100000);
-            var weather = new Weather { ZipCode = zipCode, Temperature = randomizer.Next(-80, 135), RelativeHumidity = randomizer.Next(10, 60) };
+            var weather = new Weather { Temperature = randomizer.Next(-80, 135), RelativeHumidity = randomizer.Next(10, 60) };
+            var city = new City { CitySize = CitySize.Medium, Name = "Test", ZipCode = randomizer.Next(1, 100000), Weather = weather};
 
-            unitOfWork.StartTransaction(weather);
+            unitOfWork.StartTransaction(city);
 
             try
             {
@@ -85,9 +88,9 @@ namespace zmgServer
             return city;
         }
 
-        public static void Send(Socket publisher, RuntimeTypeModel typeModel, MemoryStream stream, DomainBase instance)
+        public static void Send(IDomainMapper domainMapper, Socket publisher, RuntimeTypeModel typeModel, MemoryStream stream, DomainBase instance)
         {
-            var status = publisher.SendMore(DomainTypes.Tag2Bytes(instance.GetType()));
+            var status = publisher.SendMore(domainMapper.Type2Bytes(instance.GetType()));
             if (status != SendStatus.Sent) throw new InvalidOperationException("Key not sent!");
 
             stream.SetLength(0);

@@ -40,15 +40,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="classes\PropertyManager.cs" />
+    <Compile Include="interfaces\IDomainMapper.cs" />
+    <Compile Include="interfaces\IPropertyManagerInfo.cs" />
+    <Compile Include="interfaces\PropertyManagerInfoType.cs" />
     <Compile Include="interfaces\IIdentifyable.cs" />
     <Compile Include="interfaces\IInfo.cs" />
+    <Compile Include="interfaces\INotifyingObject.cs" />
+    <Compile Include="interfaces\IPropertyManager.cs" />
     <Compile Include="interfaces\IRepository.cs" />
     <Compile Include="interfaces\IUnitOfWork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="classes\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

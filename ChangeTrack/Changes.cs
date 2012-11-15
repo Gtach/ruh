@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Common.interfaces;
 
 namespace ChangeTrack
 {
@@ -23,15 +25,9 @@ namespace ChangeTrack
                 AllChanges.Add(propertyName, change);
         }
 
-        public bool HasChanges(IDictionary<string, ChangeablePropertyInfo> properties)
+        public bool HasChanges(object obj, IPropertyManager propertyManager)
         {
-            foreach (string propertyName in AllChanges.Keys)
-            {
-                ChangeablePropertyInfo changeablePropertyInfo;
-                if (properties.TryGetValue(propertyName, out changeablePropertyInfo) && (changeablePropertyInfo.InfoType != ChangeablePropertyInfoType.Association))
-                    return true;
-            }
-            return false;
+            return AllChanges.Keys.Any(propertyName => propertyManager.GetInfoType(obj, propertyName) != PropertyManagerInfoType.Association);
         }
     }
 

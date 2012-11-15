@@ -42,12 +42,10 @@
   <ItemGroup>
     <Compile Include="ChangeTrackBase.cs" />
     <Compile Include="ChangeableList.cs" />
-    <Compile Include="ChangeablePropertyInfo.cs" />
     <Compile Include="Changes.cs" />
     <Compile Include="ChangeState.cs" />
     <Compile Include="IChangeTrackable.cs" />
     <Compile Include="IChangeableList.cs" />
-    <Compile Include="INotifyingObject.cs" />
     <Compile Include="IObservableEnumerable.cs" />
     <Compile Include="NotTrackedAttribute.cs" />
     <Compile Include="NotUpdateableAttribute.cs" />
