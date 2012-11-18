@@ -10,21 +10,21 @@ namespace Domain
         private CitySize _citySize;
         private Weather _weather;
 
-        [ProtoMember(1)]
+        [ProtoMember(2)]
         public int ZipCode
         {
             get { return _zipCode; }
             set { SetProperty(() => ZipCode, value, ref _zipCode); }
         }
 
-        [ProtoMember(2)]
+        [ProtoMember(3)]
         public string Name
         {
             get { return _name; }
             set { SetProperty(() => Name, value, ref _name); }
         }
 
-        [ProtoMember(3)]
+        [ProtoMember(4)]
         public CitySize CitySize
         {
             get { return _citySize; }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Common.interfaces;
+using ProtoBuf.Meta;
 
 namespace Domain
 {
@@ -18,6 +19,9 @@ namespace Domain
         public DomainMapper()
         {
             _typeToTag = _tagToType.ToDictionary(pair => pair.Value, pair => pair.Key);
+
+            RuntimeTypeModel.Default[typeof(DomainBase)].AddSubType(10, typeof(Weather));
+            RuntimeTypeModel.Default[typeof(DomainBase)].AddSubType(20, typeof(City));
         }
 
         public byte[] Type2Bytes(object obj)

@@ -8,14 +8,14 @@ namespace Domain
         private int _temperature;
         private int _relativeHumidity;
 
-        [ProtoMember(1)]
+        [ProtoMember(2)]
         public int Temperature
         {
             get { return _temperature; }
             set { SetProperty(() => Temperature, value, ref _temperature); }
         }
 
-        [ProtoMember(2)]
+        [ProtoMember(3)]
         public int RelativeHumidity
         {
             get { return _relativeHumidity; }

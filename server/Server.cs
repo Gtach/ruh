@@ -25,18 +25,28 @@ namespace zmgServer
             var randomizer = new Random(DateTime.Now.Millisecond);
 
             var weather = new Weather { Temperature = randomizer.Next(-80, 135), RelativeHumidity = randomizer.Next(10, 60) };
-            var city = new City { CitySize = CitySize.Medium, Name = "Test", ZipCode = randomizer.Next(1, 100000), Weather = weather};
 
-            unitOfWork.StartTransaction(city);
+            for (var i = 0; i < 3; i++)
+            {
+                var city = new City
+                               {
+                                   CitySize = CitySize.Medium,
+                                   Name = "Test",
+                                   ZipCode = randomizer.Next(1, 100000),
+                                   Weather = weather
+                               };
 
-            try
-            {
-                unitOfWork.Commit();
-            }
-            catch (System.Exception exception)
-            {
-                unitOfWork.Rollback();
-                Console.WriteLine("Error: " + exception.Message);
+                unitOfWork.StartTransaction(city);
+
+                try
+                {
+                    unitOfWork.Commit();
+                }
+                catch (System.Exception exception)
+                {
+                    unitOfWork.Rollback();
+                    Console.WriteLine("Error: " + exception.Message);
+                }
             }
         }
 
